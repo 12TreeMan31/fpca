@@ -1,0 +1,5 @@
+tests/
+results/
+target/
+*.png
+*.jpg
