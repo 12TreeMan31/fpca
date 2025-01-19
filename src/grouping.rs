@@ -3,8 +3,6 @@ use crate::sat;
 pub fn group(d: &Vec<u8>) -> Vec<Vec<u8>> {
     let mut image_groups: Vec<Vec<u8>> = vec![Vec::new(); 6];
 
-    let colorSec = 1.0 / 6.0;
-
     for i in (0..d.len()).step_by(3) {
         let rgb: [u8; 3] = [d[i], d[i + 1], d[i + 2]];
         let hsl = sat::rgb_to_hsl(&rgb);
@@ -24,8 +22,6 @@ pub fn group(d: &Vec<u8>) -> Vec<Vec<u8>> {
 
 pub fn group_contrast(d: &Vec<u8>) -> Vec<Vec<u8>> {
     let mut image_groups: Vec<Vec<u8>> = vec![Vec::new(); 6];
-
-    let colorSec = 1.0 / 6.0;
 
     for i in (0..d.len()).step_by(3) {
         let rgb: [u8; 3] = [d[i], d[i + 1], d[i + 2]];

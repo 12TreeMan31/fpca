@@ -52,16 +52,12 @@ fn run_test(new_name: String, file_name: String) {
     let (px_data, image_info) = read_image(&file_name).expect("Failed to read image");
     let sat_data = sat::change_saturation(&px_data);
     let gray_data = grayscale(&px_data);
-    let sat_gray_data = grayscale(&sat_data);
 
     let sat_path = format!("{res_path}/sat.jpg");
     write_image(&sat_path, &sat_data, &image_info, ColorType::Rgb);
 
-    let gray_path = format!("{res_path}/original-graycale.jpg");
+    let gray_path = format!("{res_path}/graycale.jpg");
     write_image(&gray_path, &gray_data, &image_info, ColorType::Luma);
-
-    let gray_path = format!("{res_path}/sat-graycale.jpg");
-    write_image(&gray_path, &sat_gray_data, &image_info, ColorType::Luma);
 
     let calvin = format!("{res_path}/calvin-test");
     fs::create_dir(&calvin).unwrap();
@@ -114,7 +110,7 @@ fn main() {
         let handle = thread::spawn(move || run_test(new_name, file_name));
         handles.push(handle);
     }
-    for i in 0..handles.len() {
+    for _ in 0..handles.len() {
         let h = handles.pop().unwrap();
         h.join().unwrap();
     }
