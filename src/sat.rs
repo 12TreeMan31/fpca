@@ -103,7 +103,7 @@ pub fn change_saturation(d: &Vec<u8>) -> Vec<u8> {
         let rgb: [u8; 3] = [d[i], d[i + 1], d[i + 2]];
         let mut hsl = rgb_to_hsl(&rgb);
 
-        hsl[1] += 1.0;
+        hsl[1] = 1.0;
 
         let rgb = hsl_to_rgb(&hsl);
         new_image.append(&mut rgb.to_vec());
