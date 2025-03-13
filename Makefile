@@ -1,4 +1,5 @@
 RES='results/'
+SRC='src/'
 
 build:
 	cargo build --release

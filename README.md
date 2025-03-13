@@ -4,6 +4,5 @@
 - [Clustering in 3D space](https://stackoverflow.com/questions/3482161/3d-clustering-algorithm)
 
 ## Steps needed
-- Deserilize Image
-- Normilize
-- Convert from RGB to HSL
+- Take Picture
+- 

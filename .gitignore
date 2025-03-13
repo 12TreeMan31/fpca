@@ -1,5 +1,8 @@
+.vscode/
 tests/
 results/
 target/
 *.png
 *.jpg
+*.bmp
+*.out
