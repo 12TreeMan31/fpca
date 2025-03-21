@@ -4,6 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void ccl_uf(uint8_t *px, size_t width, size_t height);
+int ccl_uf(uint8_t *px, size_t width, size_t height);
 
 #endif

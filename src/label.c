@@ -1,88 +1,60 @@
-#include "vect.h"
+#include "xvec.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BLACK_IDX 1
-#define WHITE_IDX 0
+#define BACKGROUND 0
+#define FOREGROUND 1
 
 typedef struct Node {
     struct Node *parent;
+    xvec *child_labels;
+    int rank;
     int label;
 } Node;
 
 Node *node_init(int label) {
-    Node *new = malloc(sizeof(*new));
-    new->label = label;
-    new->parent = new;
-    return new;
+    Node *n = malloc(sizeof(*n));
+    n->parent = n;
+    n->child_labels = xvec_new(sizeof(int), 0);
+    n->rank = 0;
+    n->label = label;
+    xvec_push(n->bounds, &n->label);
+    return n;
 }
 
-// Recursively look for the parent node
 Node *find_root(Node *a) {
     if (a == a->parent)
         return a;
     return find_root(a->parent);
 }
 
-// Union the two nodes and return the old root
+// Return the merged node
 Node *node_union(Node *a, Node *b) {
     Node *rootA = find_root(a);
     Node *rootB = find_root(b);
 
     if (rootA == rootB)
         return NULL;
+    printf("Union %i and %i\n", rootA->label, rootB->label);
 
-    rootB->parent = rootA;
-    return rootB;
-}
-
-typedef struct NodeVector {
-    size_t length;
-    size_t capacity;
-    // This will hurt the type system but you can't index into void *
-    Node **data;
-} Vector;
-
-Vector *vec_init(size_t capacity) {
-    Vector *vec = malloc(sizeof(*vec));
-    vec->data = calloc(capacity, sizeof(*vec->data));
-    vec->capacity = capacity;
-    vec->length = 0;
-    return vec;
-}
-
-// void vec_join(Vector *a, Vector *b);
-
-// Appeneds item to end of vec
-void *vec_append(Vector *self, Node *val) {
-    self->length += 1;
-    if (self->length >= self->capacity) {
-        self->capacity += 512;
-        self->data = realloc(self->data, sizeof(*self->data) * self->capacity);
-        // Zeroizes the new area
-        for (int i = self->length; i < self->capacity; i++) {
-            self->data[i] = 0;
-        }
+    // Union by rank: attach the shorter tree to the taller one.
+    if (rootA->rank > rootB->rank) {
+        xvec_join(rootA->bounds, rootB->bounds);
+        rootB->parent = rootA;
+        return rootB;
+    } else if (rootA->rank < rootB->rank) {
+        xvec_join(rootB->bounds, rootA->bounds);
+        rootA->parent = rootB;
+        return rootA;
+    } else {
+        xvec_join(rootB->bounds, rootA->bounds);
+        rootA->parent = rootB;
+        rootB->rank += 1;
+        return rootA;
     }
-    self->data[self->length - 1] = val;
-}
-
-// Removes value at index and compacts values
-void vec_remove(Vector *self, size_t index) {
-    for (int i = index; i < self->length - 1; i++) {
-        self->data[i] = self->data[i + 1];
-    }
-    self->length -= 1;
-}
-
-// returns value at index
-void *vec_get(Vector *self, size_t index) {
-    if (index >= self->length) {
-        return NULL;
-    }
-    return self->data[index];
 }
 
 
@@ -111,19 +83,19 @@ void *vec_get(Vector *self, size_t index) {
 */
 
 // Connected Component Labeling (Union-Find)
-void ccl_uf(uint8_t *px, size_t width, size_t height) {
+int ccl_uf(uint8_t *px, size_t width, size_t height) {
     const int size = width * height;
     const int dy[] = { -width, -width, -width, 0 };
     const int dx[] = { -1, 0, 1, -1 };
 
     Node **labels = calloc(size, sizeof(Node *));
-    Vector *roots = vec_init(1024);
+    xvec *roots = xvec_new(sizeof(Node *), 0);
 
     // Makes sure 0 is an invalid label
-    vec_append(roots, NULL);
+    xvec_push(roots, NULL);
 
     for (int i = 0; i < size; i++) {
-        if (px[i] == BLACK_IDX)
+        if (px[i] == BACKGROUND)
             continue;
 
         // First create a new node this is this pixel and add it do labels
@@ -139,19 +111,20 @@ void ccl_uf(uint8_t *px, size_t width, size_t height) {
 
             // This is just the low handing fruit;
             // We need to handle when pixel is on edge of image
-            if (edgeIdx < 0 || edgeIdx > size || px[edgeIdx] == WHITE_IDX)
+            if (edgeIdx < 0 || edgeIdx > size || labels[edgeIdx] == NULL)
                 continue;
+
 
             foundLab[j] = find_root(labels[edgeIdx]);
             // For now this can be by index but it really should be by rank
-            if (foundLab[j]->label < minLab->label)
+            if (foundLab[j]->rank < minLab->rank)
                 minLab = foundLab[j];
         }
 
         // No other labels
         if (minLab == current) {
             printf("Creating new root at %i\n", i);
-            vec_append(roots, current);
+            xvec_push(roots, current);
             continue;
         }
 
@@ -163,22 +136,26 @@ void ccl_uf(uint8_t *px, size_t width, size_t height) {
             if (oldRoot == NULL)
                 continue;
             for (int k = 0; k < roots->length; k++) {
-                if (vec_get(roots, k) == oldRoot) {
-                    vec_remove(roots, k);
+                if (xvec_get(roots, k) == oldRoot) {
+                    xvec_remove(roots, k);
                     break;
                 }
             }
         }
     }
 
-    printf("----------\n");
     // Print children to output
     for (int i = 0; i < roots->length; i++) {
-        Node *tmp = vec_get(roots, i);
+        Node *tmp = xvec_get(roots, i);
         if (tmp == NULL) {
             continue;
         }
+        for (int i = 0; i < tmp->bounds->length; i++) {
+            printf("%i, ", *(int *) xvec_get(tmp->bounds, i));
+        }
+        printf("\n");
     }
+    return roots->length - 1;
 }
 
 

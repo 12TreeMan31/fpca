@@ -10,6 +10,7 @@ use zune_jpeg::{ImageInfo, JpegDecoder};
 
 mod distance;
 mod grouping;
+mod label;
 mod sat;
 
 const TEST_DIR: &str = "tests";
@@ -94,6 +95,14 @@ fn run_test(new_name: String, file_name: String) {
 
     println!("Finished test {new_name}");
 }
+
+/*
+    Open Cameras
+    Read bitmap
+    Find edges
+    Find objects
+    Send location of object to arduino
+*/
 
 fn main() {
     let mut handles: Vec<JoinHandle<()>> = Vec::new();

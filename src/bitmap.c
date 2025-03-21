@@ -1,120 +1,103 @@
 // Helper functions for serializing and deserializing bitmap files
 #include "bitmap.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
-// Header used to first in order to get color table info
-struct pre_header {
-    BMPFILEHEADER file_info;
-    BMPINFOHEADER image_info;
-} __attribute__((packed));
-
 // Write until it cannot
-int write_all(int fd, void *buf, size_t n) {
+int write_all(int fd, void *buffer, size_t n) {
     int bytes_written = 0;
     int rc = -1;
     do {
-        rc = write(fd, buf, n);
+        rc = write(fd, buffer + bytes_written, n - bytes_written);
         bytes_written += rc;
     } while (rc < 0 || bytes_written != n);
     return rc;
 }
 
-uint8_t *bmp_read(char *path, struct bmp_full_header **header) {
+struct bmp_full_header *bitmap_read(char *path) {
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
         perror("Failed to open file");
         return NULL;
     }
 
-    struct pre_header pre;
-    int rc = read(fd, &pre, sizeof(pre));
-    if (rc < 0) {
-        return NULL;
-    }
-    // Check for the magic bytes
-    if (pre.file_info.magic != BMP_MAGIC) {
-        errno = EILSEQ;
-        return NULL;
-    }
+    int rc = 0;
+    struct bmp_full_header *header = malloc(sizeof(*header));
 
-    // Creates color table then loads colors into it
-    BMPCOLORTABLE *color_pallet = calloc(pre.image_info.color_count, sizeof(*color_pallet));
-    rc = read(fd, color_pallet, sizeof(*color_pallet) * pre.image_info.color_count);
-    if (rc < 0) {
-        free(color_pallet);
-        return NULL;
-    }
+    // Reads the first 2 headers
+    rc = read(fd, &header->file_info, sizeof(BITMAPFILEHEADER));
+    if (rc < 0)
+        goto FAIL;
+    rc = read(fd, &header->image_info, sizeof(BITMAPINFOHEADER));
+    if (rc < 0)
+        goto FAIL;
 
-    struct bmp_full_header *tmp = malloc(sizeof(*tmp));
-    memcpy(&tmp->file_info, &pre.file_info, sizeof(pre.file_info));
-    memcpy(&tmp->image_info, &pre.image_info, sizeof(pre.image_info));
-    tmp->colors = color_pallet;
 
-    *header = tmp;
-
-    // Gets the start of the image data in the file
-    int px_data_length = pre.file_info.file_size - pre.file_info.offset;
-    uint8_t *data = calloc(px_data_length, sizeof(uint8_t));
-    rc = read(fd, data, px_data_length);
-    if (rc < 0) {
-        return NULL;
+    // Gets the color table
+    int colorOffset = sizeof(BITMAPFILEHEADER) + header->image_info.biSize;
+    if (header->image_info.biClrUsed == 0) {
+        // Means we are using all of the colors
     }
 
+    int colorSize = header->image_info.biClrUsed * sizeof(RGBQUAD);
+    header->colors = malloc(colorSize);
+    rc = lseek(fd, colorOffset, SEEK_SET);
+    if (rc < 0)
+        goto FAIL;
+    rc = read(fd, header->colors, colorSize);
+    if (rc < 0)
+        goto FAIL;
+
+    // Get bit data
+    int imageSize = header->file_info.bfSize - header->file_info.bfOffBits;
+    header->imageBits = malloc(imageSize);
+    rc = read(fd, header->imageBits, imageSize);
+    if (rc < 0)
+        goto FAIL;
+
+    // Now that we have all the data update the offsets to our format
+    header->file_info.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) +
+                    (sizeof(RGBQUAD) * header->image_info.biClrUsed);
+    header->image_info.biSize = sizeof(BITMAPINFOHEADER);
+
+    return header;
+
+FAIL:
+    perror("Could not read bitmap file");
     close(fd);
-
-    return data;
+    return NULL;
 }
 
-int bmp_write(char *path, struct bmp_full_header *header, void *data) {
+int bitmap_write(char *path, struct bmp_full_header *header) {
     // Open the file for creation, but fail if it already exists
     int fd = open(path, O_EXCL | O_CREAT | O_WRONLY, 0644);
-    if (fd < 0) {
-        return -fd;
-    }
+    if (fd < 0)
+        goto FAIL;
 
-    // Check for the magic bytes
-    if (header->file_info.magic != BMP_MAGIC) {
-        errno = EILSEQ;
-        close(fd);
-        return -1;
-    }
+    int rc = 0;
+    // Writes headers
+    int infosSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    rc = write_all(fd, header, infosSize);
+    if (rc < 0 || rc != infosSize)
+        goto FAIL;
 
-    struct pre_header pre;
-    memcpy(&pre.file_info, &header->file_info, sizeof(pre.file_info));
-    memcpy(&pre.image_info, &header->image_info, sizeof(pre.image_info));
+    int colorSize = header->image_info.biClrUsed * sizeof(RGBQUAD);
+    rc = write_all(fd, header->colors, colorSize);
+    if (rc < 0 || rc != colorSize)
+        goto FAIL;
 
-    // Write the pre-header
-    int rc = write_all(fd, &pre, sizeof(pre));
-    if (rc < 0 || rc != sizeof(pre)) {
-        close(fd);
-        return -1;
-    }
-
-    // Write the color table
-    rc = write_all(fd, header->colors, header->image_info.color_count);
-    if (rc < 0 || rc != header->image_info.color_count) {
-        close(fd);
-        return -1;
-    }
-
-    // Write the pixel data
-    int px_data_length = header->file_info.file_size - header->file_info.offset;
-    rc = write_all(fd, data, px_data_length);
-    if (rc < 0 || rc != px_data_length) {
-        close(fd);
-        return -1;
-    }
-
-    // Close the file
-    if (close(fd) < 0) {
-        return -1;
-    }
+    int imageSize = header->file_info.bfSize - header->file_info.bfOffBits;
+    rc = write_all(fd, header->imageBits, imageSize);
+    if (rc < 0 || rc != imageSize)
+        goto FAIL;
 
     return 0;
+
+FAIL:
+    perror("Could not write bitmap");
+    close(fd);
+    return -1;
 }
