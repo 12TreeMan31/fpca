@@ -1,8 +1,10 @@
-#include "node.h"
+#include "includes/node.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-Node *node_init(int label) {
+Node *node_init(unsigned int label) {
     Node *n = malloc(sizeof(*n));
     n->parent = n;
     n->rank = 0;
@@ -10,14 +12,20 @@ Node *node_init(int label) {
     return n;
 }
 
-Node *find_root(Node *a) {
+
+// Recursively looks for the root node the the tree and returns the root
+Node *find_root(Node * restrict a) {
     if (a == a->parent)
         return a;
     return find_root(a->parent);
 }
 
-// Return the merged node
-Node *node_union(Node *a, Node *b) {
+/*
+ * Merges node a and b setting the node with the highest
+ * rank as the new parent. You MUST called find_root on
+ * both nodes before calling this function
+ */
+Node *node_union(Node * restrict a, Node * restrict b) {
     Node *rootA = find_root(a);
     Node *rootB = find_root(b);
 
@@ -37,3 +45,9 @@ Node *node_union(Node *a, Node *b) {
         rootB->rank += 1;
         return rootA;
     }
+}
+
+// We only need this since we are interfacing with rust
+void node_free(Node * restrict a) {
+    free(a);
+}

@@ -1,5 +1,5 @@
 // Helper functions for serializing and deserializing bitmap files
-#include "bitmap.h"
+#include "includes/bitmap.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@ int write_all(int fd, void *buffer, size_t n) {
     return rc;
 }
 
-struct bmp_full_header *bitmap_read(char *path) {
+struct bmp_full_header *bitmap_read(const char *path) {
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
         perror("Failed to open file");
@@ -27,7 +27,7 @@ struct bmp_full_header *bitmap_read(char *path) {
     int rc = 0;
     struct bmp_full_header *header = malloc(sizeof(*header));
 
-    // Reads the first 2 headers
+    // Reads the first 2 headers -- We can merge this into one read
     rc = read(fd, &header->file_info, sizeof(BITMAPFILEHEADER));
     if (rc < 0)
         goto FAIL;
@@ -36,7 +36,7 @@ struct bmp_full_header *bitmap_read(char *path) {
         goto FAIL;
 
 
-    // Gets the color table
+    // Gets the color table there are special cases for 0 and 1
     int colorOffset = sizeof(BITMAPFILEHEADER) + header->image_info.biSize;
     if (header->image_info.biClrUsed == 0) {
         // Means we are using all of the colors
@@ -53,8 +53,8 @@ struct bmp_full_header *bitmap_read(char *path) {
 
     // Get bit data
     int imageSize = header->file_info.bfSize - header->file_info.bfOffBits;
-    header->imageBits = malloc(imageSize);
-    rc = read(fd, header->imageBits, imageSize);
+    header->image_bits = malloc(imageSize);
+    rc = read(fd, header->image_bits, imageSize);
     if (rc < 0)
         goto FAIL;
 
@@ -71,7 +71,7 @@ FAIL:
     return NULL;
 }
 
-int bitmap_write(char *path, struct bmp_full_header *header) {
+int bitmap_write(const char *path, struct bmp_full_header * restrict header) {
     // Open the file for creation, but fail if it already exists
     int fd = open(path, O_EXCL | O_CREAT | O_WRONLY, 0644);
     if (fd < 0)
@@ -90,7 +90,7 @@ int bitmap_write(char *path, struct bmp_full_header *header) {
         goto FAIL;
 
     int imageSize = header->file_info.bfSize - header->file_info.bfOffBits;
-    rc = write_all(fd, header->imageBits, imageSize);
+    rc = write_all(fd, header->image_bits, imageSize);
     if (rc < 0 || rc != imageSize)
         goto FAIL;
 
@@ -100,4 +100,10 @@ FAIL:
     perror("Could not write bitmap");
     close(fd);
     return -1;
+}
+
+void bitmap_free(struct bmp_full_header * restrict header) {
+    free(header->colors);
+    free(header->image_bits);
+    free(header);
 }

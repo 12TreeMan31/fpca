@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 fn main() {
     let bindings = bindgen::Builder::default()
-        .header("src/bindgen.h")
+        .header("src/ffi/bindgen.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings");
@@ -14,8 +14,7 @@ fn main() {
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
     cc::Build::new()
-        .file("src/label.c")
-        .file("src/main.c")
+        .file("src/node.c")
         .file("src/bitmap.c")
-        .compile("bindgen");
+        .compile("simpledetect");
 }

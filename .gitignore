@@ -1,3 +1,5 @@
+src/ffi/bindings.rs
+
 .vscode/
 tests/
 results/

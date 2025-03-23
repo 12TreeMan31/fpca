@@ -1,17 +1,16 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-// TAKEN FROM MY NEPNEP PROJECT
 // http://justsolve.archiveteam.org/wiki/BMP
-// https://www.ece.ualberta.ca/~elliott/ee552/studentAppNotes/2003_w/misc/bmp_file_format/bmp_file_format.htm
 #include <stdint.h>
 
 // Magic bytes for BMP header. Others exist but this is the most common
-#define BMP_MAGIC 0x4d42
+#define BF_MAGIC 0x4d42
 
-enum biCompressionTypes { BI_RGB = 0, BI_BITFIELDS = 1 };
+// biCompressionTypes
+#define BI_RGB 0
+#define BI_BITFIELDS 1
 
-// Special Handling for 1 and 0 on bpp
 typedef struct BITMAPFILEHEADER {
     uint16_t bfType;      // Magic bytes; must be 0x4d42
     uint32_t bfSize;      // Size of file
@@ -20,6 +19,7 @@ typedef struct BITMAPFILEHEADER {
     uint32_t bfOffBits;   // Byte offset from start of BITMAPFILEHEADER to image data
 } __attribute__((packed)) BITMAPFILEHEADER;
 
+// Special Handling for 1 and 0 on bpp
 typedef struct BITMAPINFOHEADER {
     uint32_t biSize;         // Size of this header
     int32_t biWidth;         // Width in pixels
@@ -34,22 +34,23 @@ typedef struct BITMAPINFOHEADER {
     uint32_t biClrImportant; // ??
 } __attribute__((packed)) BITMAPINFOHEADER;
 
-// Put into array of length color_count found in BMPINFOHEADER
+// Put into array of length color_count found in BMPINFOHEADER. Note: This ordering changes depending on bpp which we do not support
 typedef struct RGBQUAD {
-    uint8_t blue;
-    uint8_t green;
-    uint8_t red;
-    uint8_t reserved;
+    uint8_t rgbBlue;
+    uint8_t rgbGreen;
+    uint8_t rgbRed;
+    uint8_t rgbReserved;
 } __attribute__((packed)) RGBQUAD;
 
 struct bmp_full_header {
     BITMAPFILEHEADER file_info;
     BITMAPINFOHEADER image_info;
     RGBQUAD *colors;
-    void *imageBits;
+    void *image_bits;
 } __attribute__((packed));
 
-struct bmp_full_header *bitmap_read(char *path);
-int bitmap_write(char *path, struct bmp_full_header *header);
+struct bmp_full_header *bitmap_read(const char *path);
+int bitmap_write(const char *path, struct bmp_full_header * restrict header);
+void bitmap_free(struct bmp_full_header * restrict header);
 
 #endif

@@ -9,6 +9,7 @@ use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 use zune_jpeg::{ImageInfo, JpegDecoder};
 
 mod distance;
+mod ffi;
 mod grouping;
 mod label;
 mod sat;

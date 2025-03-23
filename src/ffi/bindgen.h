@@ -1,1 +1,2 @@
-#include <../includes
+#include "../includes/bitmap.h"
+#include "../includes/node.h"

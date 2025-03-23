@@ -11,3 +11,6 @@ bitvec = "1.0.1"
 [build-dependencies]
 bindgen = "0.71.1"
 cc = "1.2.16"
+
+[profile.dev]
+overflow-checks = false
