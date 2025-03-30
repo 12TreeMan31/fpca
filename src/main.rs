@@ -1,4 +1,7 @@
 #![feature(slice_as_chunks)]
+#![feature(iter_map_windows)]
+#![feature(array_chunks)]
+#![feature(iter_array_chunks)]
 
 use std::fs::{self, File};
 use std::io::Read;
@@ -83,7 +86,6 @@ fn run_test(new_name: String, file_name: String) {
         let hue_path = format!("{calvin}/{degree}.jpg");
         write_image(&hue_path, v, &image_info, ColorType::Rgb);
     }
-
     /*let ne_dat = grouping::divid(&sat_data, image_info.width, image_info.height, 10);
     let ne_path = format!("{res_path}/divid.jpg");
     write_image(&ne_path, &ne_dat, &image_info, ColorType::Rgb);*/
@@ -107,7 +109,7 @@ fn run_test(new_name: String, file_name: String) {
 
 fn main() {
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
-
+    label::ccl_uf(&[1]);
     let _ = fs::remove_dir_all(RESULT_DIR);
     fs::create_dir(RESULT_DIR).unwrap();
     let images = fs::read_dir(TEST_DIR).expect("Could not find testing directory");
@@ -135,7 +137,6 @@ fn main() {
         let handle = thread::spawn(move || run_test(new_name, file_name));
         handles.push(handle);
     }
-
     for _ in 0..handles.len() {
         let h = handles.pop().unwrap();
         h.join().unwrap();
