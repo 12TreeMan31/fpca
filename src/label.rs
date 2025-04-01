@@ -1,65 +1,55 @@
-use crate::ffi::node::NodeHandle;
+use crate::ffi::constants::*;
+use crate::node::*;
 use std::ops::{Deref, DerefMut};
 
-const BACKGROUND: u8 = 0;
-const FOREGROUND: u8 = 1;
-
-// const WIDTH: usize = 954;
-// const HEIGHT: usize = 798;
-const WIDTH: usize = 4;
-const HEIGHT: usize = 4;
-const SIZE: usize = WIDTH * HEIGHT;
-
-struct Roots<'a> {
-    inner: Vec<(&'a NodeHandle, Vec<u32>)>,
+#[derive(Debug)]
+struct Roots {
+    /*
+     * While it would be nice to set up roots like we did with NodeArena,
+     * we would lose out of a lot on syntax which would make things easy
+     */
+    inner: Vec<(usize, Vec<usize>)>,
 }
 
-impl<'a> Deref for Roots<'a> {
-    type Target = Vec<(&'a NodeHandle, Vec<u32>)>;
+impl Deref for Roots {
+    type Target = Vec<(usize, Vec<usize>)>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
-impl<'a> DerefMut for Roots<'a> {
+impl DerefMut for Roots {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
-impl<'a> Roots<'a> {
-    fn new() -> Self {
+impl Roots {
+    pub fn new() -> Self {
         Self { inner: Vec::new() }
     }
 
-    // Looks for node in roots and returns its index or none if it cannot be found
-    fn find_node(&self, node: &NodeHandle) -> Option<usize> {
-        self.inner.iter().position(|&(x, _)| *x == *node)
+    fn find_node(&self, label: usize) -> Option<usize> {
+        self.iter().position(|&(x, _)| x == label)
     }
-    fn push(&mut self, value: &'a NodeHandle) {
-        let mut first_label: Vec<u32> = Vec::new();
-        first_label.push(value.label());
-        self.inner.push((value, first_label));
+    pub fn push_node(&mut self, label: usize) {
+        let mut first_label: Vec<usize> = Vec::new();
+        first_label.push(label);
+        self.push((label, first_label));
     }
 
-    /*
-     * takes two children and unions them together, reflecting
-     * the new root in this array, returns None if already part of same tree
-     * panics if nodes parents are not apart of roots
-     */
-    fn union(&mut self, a: &mut NodeHandle, b: &mut NodeHandle) -> Option<usize> {
-        let root_idx = a.union(b)? as usize;
-
-        // Converts them into a format that we can index into with xor
+    pub fn union(&mut self, labels: &mut NodeArena, a: usize, b: usize) -> Option<usize> {
+        // Indexs of the 2 roots in self
         let roots = [a, b].map(|x| {
-            let x = x.find_root();
-            self.find_node(&x)
-                .expect("doing union on a node not in roots")
+            let label_idx = labels.find_root(x);
+            self.find_node(label_idx)
+                .expect("looking for a node not regester in roots!")
         });
 
-        let idx_a = roots[root_idx];
+        let main = labels.union(a, b)?;
+        let idx_a = roots[main];
         // Root to be removed; give its labels vec to the new tree root
-        let idx_b = roots[root_idx ^ 1];
+        let idx_b = roots[main ^ 1];
 
         if idx_a < idx_b {
             let (left, right) = self.split_at_mut(idx_b);
@@ -74,7 +64,7 @@ impl<'a> Roots<'a> {
         }
 
         self.remove(idx_b);
-        Some(root_idx)
+        Some(idx_a)
     }
 }
 
@@ -117,12 +107,7 @@ fn get_edges(index: usize, pixels: &[u8]) -> [Option<usize>; 4] {
 }
 
 pub fn ccl_uf(px: &[u8]) -> usize {
-    // Every pixel will have a node
-    let mut labels: Vec<NodeHandle> = px
-        .iter()
-        .enumerate()
-        .map(|(i, _)| NodeHandle::new(i as u32))
-        .collect();
+    let mut labels: NodeArena = NodeArena::new();
     let mut roots: Roots = Roots::new();
 
     for (i, &pixel) in px.iter().enumerate() {
@@ -130,28 +115,17 @@ pub fn ccl_uf(px: &[u8]) -> usize {
             continue;
         }
 
-        let current = &mut labels[i];
+        roots.push_node(i);
         for node_idx in get_edges(i, px) {
-            let found = match node_idx {
-                Some(x) => &mut labels[x],
+            // Index of a FORGROUND pixel which we will union to
+            let edge = match node_idx {
+                Some(x) => x,
                 None => continue,
             };
+            roots.union(&mut labels, i, edge);
         }
-
-        /*let mut new_node = NodeHandle::new(i as u32);
-        // Get each edge and then union them to roots
-        for node_idx in get_edges(i, &labels) {
-            let found = match node_idx {
-                Some(idx) => match &mut labels[idx] {
-                    Some(x) => x,
-                    None => unreachable!("get_edges should have already properly bounds checked"),
-                },
-                None => continue,
-            };
-            roots.union(&mut new_node, found);
-        }
-        labels[i] = Some(new_node);*/
     }
+
     roots.len()
 }
 
@@ -160,8 +134,64 @@ mod tests {
     use super::*;
 
     #[test]
+    fn label_union() {
+        let mut label = NodeArena::new();
+        let res = label.union(0, 1).expect("res should not be None!");
+        assert_eq!(res, 1);
+        let res = label.find_root(0);
+        assert_eq!(res, 1);
+        let res = label.union(1, 0);
+        assert_eq!(res, None);
+        let res = label.union(0, 2).expect("res should not be None!");
+        assert_eq!(res, 0);
+        println!("{:?}", label);
+    }
+
+    #[test]
+    fn root_union() {
+        let data: [u8; SIZE] = [1; SIZE];
+        let mut roots = Roots::new();
+        let mut labels = NodeArena::new();
+
+        for (i, _) in data.iter().enumerate() {
+            roots.push_node(i);
+        }
+
+        for (i, _) in data.iter().enumerate() {
+            println!("Union on 0 and {i}");
+            let result = roots.union(&mut labels, 0, i);
+            println!("{i}: {:?}", result);
+        }
+        assert_eq!(roots.len(), 1);
+    }
+
+    #[test]
     fn tetris() {
         let data = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1];
+        assert_eq!(ccl_uf(&data), 2)
+    }
+
+    #[test]
+    fn out_square() {
+        let data = [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1];
+        assert_eq!(ccl_uf(&data), 1)
+    }
+
+    #[test]
+    fn four_corner() {
+        let data = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1];
+        assert_eq!(ccl_uf(&data), 4)
+    }
+
+    #[test]
+    fn cross() {
+        let data = [1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1];
+        assert_eq!(ccl_uf(&data), 1)
+    }
+
+    #[test]
+    fn diaginal_with_dot() {
+        let data = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1];
         assert_eq!(ccl_uf(&data), 2)
     }
 }

@@ -3,6 +3,7 @@
 #![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 
+use crate::ffi::constants::*;
 use std::fs::{self, File};
 use std::io::Read;
 use std::thread::{self, JoinHandle};
@@ -15,6 +16,7 @@ mod distance;
 mod ffi;
 mod grouping;
 mod label;
+mod node;
 mod sat;
 
 const TEST_DIR: &str = "tests";
@@ -108,9 +110,10 @@ fn run_test(new_name: String, file_name: String) {
 */
 
 fn main() {
-    let mut handles: Vec<JoinHandle<()>> = Vec::new();
-    label::ccl_uf(&[1]);
-    let _ = fs::remove_dir_all(RESULT_DIR);
+    // let mut handles: Vec<JoinHandle<()>> = Vec::new();
+    let d = label::ccl_uf(&[1; SIZE]);
+    println!("Work???, {}", d);
+    /*let _ = fs::remove_dir_all(RESULT_DIR);
     fs::create_dir(RESULT_DIR).unwrap();
     let images = fs::read_dir(TEST_DIR).expect("Could not find testing directory");
     for img in images {
@@ -140,5 +143,5 @@ fn main() {
     for _ in 0..handles.len() {
         let h = handles.pop().unwrap();
         h.join().unwrap();
-    }
+    }*/
 }

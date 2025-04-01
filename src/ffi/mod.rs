@@ -1,3 +1,3 @@
 mod bindings;
 pub mod bitmap;
-pub mod node;
+pub mod constants;
