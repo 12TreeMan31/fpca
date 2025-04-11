@@ -3,14 +3,14 @@ name = "simple-detection"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-zune-jpeg = "0.4.13"
-jpeg-encoder = "0.6.0"
-bitvec = "1.0.1"
-
 [build-dependencies]
 bindgen = "0.71.1"
 cc = "1.2.16"
 
 [profile.dev]
 overflow-checks = false
+
+[dependencies]
+edge-detection = "0.2.6"
+image = "0.25.6"
+zune-jpeg = "0.4.14"

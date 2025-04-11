@@ -14,7 +14,7 @@
 
 use crate::ffi::constants::*;
 
-// We will know the hight and width of the image at compile time
+/// We will know the hight and width of the image at compile time
 /// The index in the array is the label
 #[derive(Debug)]
 pub struct NodeArena {
@@ -44,12 +44,10 @@ impl NodeArena {
         self.find_root(parent)
     }
 
-    /*
-     * Merges node left and right setting the node with the highest
-     * rank as the new parent. You MUST called node_root on
-     * both nodes before calling this function returns 0 if
-     * left is the new root, 1 if right
-     */
+    /// Merges node left and right setting the node with the highest
+    /// rank as the new parent. You MUST called node_root on
+    /// both nodes before calling this function. returns 0 if
+    /// left is the new root, 1 if right
     pub fn union(&mut self, a: usize, b: usize) -> Option<usize> {
         let l_root = self.find_root(a);
         let r_root = self.find_root(b);

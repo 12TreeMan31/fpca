@@ -1,6 +1,46 @@
-use crate::sat;
+use crate::ffi::constants::*;
+use crate::human::sat;
 
-pub fn group(d: &Vec<u8>) -> Vec<Vec<u8>> {
+/// Converts the pixel data into N sectors based on the hues on the color
+/// wheel which all have the same arc length. Resulting array will be 1/3
+/// of SIZE as we are converting rgb to sectors
+fn into_sectors<const N: usize>(image: &[u8]) -> [usize; SIZE / 3] {
+    // Size of new array will be 1/3 of old because of rgb values
+    image
+        .array_chunks::<3>()
+        .map(|rgb| {
+            let hsl = sat::rgb_to_hsl(rgb);
+            (hsl[0] * N).floor() as usize
+        })
+        .collect()
+}
+
+pub fn group_contrast<const N: usize>(image: &[u8]) -> [[u8; SIZE]; N] {
+    let sectors = into_sectors::<N>(image);
+
+    let mut image_groups: [[u8; SIZE]; N] = [[0; SIZE]; N];
+    for (i, &sec) in sectors.iter().enumerate() {
+        let i = i * 3;
+        image_groups[sec][i] = 255;
+        image_groups[sec][i + 1] = 255;
+        image_groups[sec][i + 2] = 255;
+    }
+    image_groups
+}
+
+pub fn group_colors<const N: usize>(image: &[u8]) -> [[u8; SIZE]; N] {
+    let sectors = into_sectors::<N>(image);
+
+    let mut image_groups: [[u8; SIZE]; N] = [[0; SIZE]; N];
+    for (i, (&sec, &rgb)) in sectors.iter().zip(image.array_chunks::<3>()).enumerate() {
+        let i = i * 3;
+        image_groups[sec][i] = rgb[0];
+        image_groups[sec][i + 1] = rgb[1];
+        image_groups[sec][i + 2] = rgb[2];
+    }
+    image_groups
+}
+/*pub fn group(d: &Vec<u8>) -> Vec<Vec<u8>> {
     let mut image_groups: Vec<Vec<u8>> = vec![Vec::new(); 6];
 
     for i in (0..d.len()).step_by(3) {
@@ -38,7 +78,7 @@ pub fn group_contrast(d: &Vec<u8>) -> Vec<Vec<u8>> {
     }
 
     image_groups
-}
+}*/
 
 /*pub fn divid(d: &Vec<u8>, width: u16, height: u16, n: u16) -> Vec<u8> {
     let w = width / n;

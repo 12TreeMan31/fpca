@@ -4,10 +4,8 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Debug)]
 struct Roots {
-    /*
-     * While it would be nice to set up roots like we did with NodeArena,
-     * we would lose out of a lot on syntax which would make things easy
-     */
+    /// While it would be nice to set up roots like we did with NodeArena,
+    /// we would lose out of a lot on syntax which would make things easy
     inner: Vec<(usize, Vec<usize>)>,
 }
 
@@ -126,7 +124,61 @@ pub fn ccl_uf(px: &[u8]) -> usize {
         }
     }
 
+    bounds_boxes(&roots);
     roots.len()
+}
+
+struct Labels {
+    top_x: Vec<usize>,
+    top_y: Vec<usize>,
+    bottom_x: Vec<usize>,
+    bottom_y: Vec<usize>,
+}
+
+impl Labels {
+    pub fn new() -> Self {
+        Self {
+            top_x: Vec::new(),
+            top_y: Vec::new(),
+            bottom_x: Vec::new(),
+            bottom_y: Vec::new(),
+        }
+    }
+}
+
+fn bounds_boxes(roots: &Roots) -> Labels {
+    let mut labs: Labels = Labels::new();
+    for (_, idxs) in roots.iter() {
+        let max = idxs.iter().fold((0, 0), |(acc_x, acc_y), &index| {
+            let (mut x, mut y) = idx_to_xy(index);
+            if acc_x > x {
+                x = acc_x;
+            }
+            if acc_y > y {
+                y = acc_y;
+            }
+            (x, y)
+        });
+
+        let min = idxs
+            .iter()
+            .fold((usize::MAX, usize::MAX), |(acc_x, acc_y), &index| {
+                let (mut x, mut y) = idx_to_xy(index);
+                if acc_x < x {
+                    x = acc_x;
+                }
+                if acc_y < y {
+                    y = acc_y;
+                }
+                (x, y)
+            });
+
+        labs.top_x.push(max.0);
+        labs.top_y.push(max.1);
+        labs.bottom_x.push(min.0);
+        labs.bottom_y.push(min.1);
+    }
+    labs
 }
 
 #[cfg(test)]
@@ -165,10 +217,12 @@ mod tests {
         assert_eq!(roots.len(), 1);
     }
 
+    // The main edge cases we were running into. Mainly here to varify the logic in `get_edges`
     #[test]
     fn tetris() {
         let data = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1];
-        assert_eq!(ccl_uf(&data), 2)
+        assert_eq!(ccl_uf(&data), 2);
+        // let res =
     }
 
     #[test]
