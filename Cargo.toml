@@ -13,4 +13,3 @@ overflow-checks = false
 [dependencies]
 edge-detection = "0.2.6"
 image = "0.25.6"
-zune-jpeg = "0.4.14"

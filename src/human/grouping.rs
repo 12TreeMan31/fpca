@@ -10,7 +10,7 @@ fn into_sectors<const N: usize>(image: &[u8]) -> [usize; SIZE / 3] {
         .array_chunks::<3>()
         .map(|rgb| {
             let hsl = sat::rgb_to_hsl(rgb);
-            (hsl[0] * N).floor() as usize
+            (hsl[0] * N as f32).floor() as usize
         })
         .collect()
 }

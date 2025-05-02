@@ -1,14 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#include <stdint.h>
-#include <stdlib.h>
+const unsigned long WIDTH = 4;
+const unsigned long HEIGHT = 4;
+const unsigned long SIZE = WIDTH * HEIGHT;
 
-const size_t WIDTH = 4;
-const size_t HEIGHT = 4;
-const size_t SIZE = WIDTH * HEIGHT;
-
-const uint8_t BACKGROUND = 0;
-const uint8_t FOREGROUND = 1;
+const unsigned char BACKGROUND = 0;
+const unsigned char FOREGROUND = 1;
 
 #endif

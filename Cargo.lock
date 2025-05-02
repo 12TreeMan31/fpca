@@ -944,7 +944,6 @@ dependencies = [
  "cc",
  "edge-detection",
  "image 0.25.6",
- "zune-jpeg",
 ]
 
 [[package]]
