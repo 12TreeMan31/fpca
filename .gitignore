@@ -1,7 +1,7 @@
 src/ffi/bindings.rs
 
 .vscode/
-tests/
+test-images/
 results/
 target/
 *.png

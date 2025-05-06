@@ -16,3 +16,14 @@ cargo build
 ### Steps needed
 - Take Picture
 - 
+
+```
+├── edge-detection      ; Python OpenCV code used as a proof of concept  
+├── src
+│   ├── ffi             ; Module used by rust to interface with c/c++ 
+│   └── human           ; Code deticated to visualizing each step
+├── includes            ; Includes for c/c++
+├── test-graphics       ; Generated images created by the `human` module
+├── test-images         ; Images to be tested on by `human`
+└── tests               ; "Integration test" used for running `human`
+```

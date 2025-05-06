@@ -1,7 +1,10 @@
 SRC=src
 INC=$(SRC)/includes
 GEN=$(SRC)/ffi/generated
-RES=results
+TESTS=tests
+
+TEST_IMGS=test-images
+GRAPH_DIR=test-graphics
 
 ffi: 
 	bindgen src/ffi/bindgen.h -o src/ffi/bindings.rs --raw-line "// [allow(warnings)]"
@@ -19,3 +22,9 @@ clean:
 
 ccc:
 	g++ $(SRC)/edgedetect.cpp $(SRC)/channels.c -I $(INC) -Wall `pkg-config --cflags --libs opencv4`
+
+real:
+	cross build --target arm-unknown-linux-gnueabihf
+
+graphics:
+	bash $(TESTS)/setup.sh

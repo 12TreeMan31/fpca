@@ -1,15 +1,15 @@
-#![feature(slice_as_chunks)]
 #![feature(iter_map_windows)]
 #![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 
-use crate::ffi::constants::*;
-use image::{self, DynamicImage, GrayImage, ImageBuffer, Luma};
-use std::sync::atomic::AtomicBool;
+// use crate::ffi::constants::*;
+// use image::{self, DynamicImage, GrayImage, ImageBuffer, Luma};
+// use std::sync::atomic::AtomicBool;
 // use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 // use zune_jpeg::{ImageInfo, JpegDecoder};
 
 mod ffi;
+mod human;
 
 const TEST_DIR: &str = "tests";
 const RESULT_DIR: &str = "results";
@@ -58,11 +58,5 @@ fn write_image(path: &str, data: &Vec<u8>, info: &ImageInfo, color: ColorType) {
  * - Wait to get a angle from the pi
  * - Once received just move forward (optinal: robot can rotate)
  */
-
-#[repr(C)]
-struct Message {
-    ready: AtomicBool,
-    image: *mut u8,
-}
 
 fn main() {}
