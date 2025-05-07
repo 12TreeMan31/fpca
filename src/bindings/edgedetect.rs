@@ -1,7 +1,7 @@
 #[cxx::bridge]
-mod edgedetect {
+pub mod edgedetect {
     unsafe extern "C++" {
         include!("simple-detection/includes/cpp/edgedetect.hpp");
-        pub fn edgedetect() -> i32;
+        pub fn edges() -> i32;
     }
 }

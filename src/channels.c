@@ -1,5 +1,5 @@
-#include "includes/channels.h"
-#include "includes/constants.h"
+#include "includes/c/channels.h"
+#include "includes/c/constants.h"
 #include <stdlib.h>
 
 typedef struct ring_buffer {

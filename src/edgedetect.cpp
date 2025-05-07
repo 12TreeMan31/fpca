@@ -1,5 +1,6 @@
-#include "includes/channels.h"
-#include "includes/constants.h"
+#include "includes/cpp/edgedetect.hpp"
+#include "includes/c/channels.h"
+#include "includes/c/constants.h"
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -38,7 +39,7 @@ void mat_to_array(Mat *input, unsigned char *output) {
     }
 }
 
-int edgedetect() {
+int edges() {
     Mat frame, edges;
     VideoCapture cam;
     camera_init(&cam, 0);

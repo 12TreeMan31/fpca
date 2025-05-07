@@ -3,11 +3,12 @@ fn main() {
         .probe("opencv4")
         .expect("Failed to find OpenCV");
 
-    cxx_build::bridge("src/main.rs")
-        .file("src/edgedetect.cpp")
+    cxx_build::bridge("src/bindings/edgedetect.rs")
+        .files(["src/edgedetect.cpp", "src/channels.c"])
         .flag_if_supported("-std=c++14")
         .includes(&opencv.include_paths)
-        .compile("libopencv_bridge.a");
+        .include("includes")
+        .compile("libopencv_bridge");
 
     for lib in &opencv.libs {
         println!("cargo:rustc-link-lib={}", lib);

@@ -1,6 +1,6 @@
 /// A simple rexport of the constants found in `constants.h`
 /// so that rust and c both agree on the values no matter what
-use crate::ffi::bindings;
+use crate::bindings::bindings;
 
 pub const WIDTH: usize = bindings::WIDTH as usize;
 pub const HEIGHT: usize = bindings::HEIGHT as usize;

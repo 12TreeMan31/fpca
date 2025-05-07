@@ -1,6 +1,6 @@
 #ifndef EDGEDETECT_HPP
 #define EDGEDETECT_HPP
 
-int edgedetect();
+int edges();
 
 #endif

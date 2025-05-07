@@ -7,9 +7,9 @@
 // use std::sync::atomic::AtomicBool;
 // use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 // use zune_jpeg::{ImageInfo, JpegDecoder};
+use crate::bindings::edgedetect::edgedetect;
 
-mod ffi;
-mod human;
+mod bindings;
 
 const TEST_DIR: &str = "tests";
 const RESULT_DIR: &str = "results";
@@ -59,4 +59,6 @@ fn write_image(path: &str, data: &Vec<u8>, info: &ImageInfo, color: ColorType) {
  * - Once received just move forward (optinal: robot can rotate)
  */
 
-fn main() {}
+fn main() {
+    edgedetect::edges();
+}
