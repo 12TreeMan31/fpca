@@ -1,5 +1,6 @@
 use jpeg_encoder::{ColorType, Encoder};
-use std::fs::{self, File};
+use simple_detection::visualizer::*;
+use std::fs::{self, DirEntry, File};
 use std::io::Read;
 use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 use zune_jpeg::{ImageInfo, JpegDecoder};
@@ -33,7 +34,17 @@ fn write_image(path: &str, data: &Vec<u8>, info: &ImageInfo, color: ColorType) {
 }
 
 #[test]
-fn max_sat() {}
+fn max_sat() {
+    for file in fs::read_dir(TEST_DIR).unwrap() {
+        let file = file.unwrap();
+        let (pixels, info) = read_image(file.path()).unwrap();
+        let sat = sat::change_saturation(&pixels);
+
+        let filename = file.path().file_stem().unwrap();
+        let result_path = format!("{GRAPHICS_DIR}/{filename}/sat.jpg");
+        write_image(&result_path, &sat, &info, ColorType::Rgb);
+    }
+}
 
 #[test]
 fn hue_split_color() {}

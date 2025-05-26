@@ -1,11 +1,14 @@
 #ifndef CHANNELS_H
 #define CHANNELS_H
 
-#include <stdlib.h>
+#define TEST
 
-typedef struct ring_buffer ring_buffer;
-ring_buffer *ring_new(size_t size);
-unsigned char *ring_write(ring_buffer *self, unsigned char *new_data);
-unsigned char *ring_read(ring_buffer *self);
+typedef struct ring_buffer_t ring_buffer_t;
+typedef ring_buffer_t ring_consumer;
+typedef ring_buffer_t ring_producer;
+
+void ring_new(int size, ring_consumer **rx, ring_producer **tx);
+void ring_write(ring_producer *restrict self, unsigned char *data);
+unsigned char *ring_read(ring_consumer *restrict self);
 
 #endif

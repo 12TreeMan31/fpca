@@ -7,9 +7,12 @@
 // use std::sync::atomic::AtomicBool;
 // use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 // use zune_jpeg::{ImageInfo, JpegDecoder};
+use crate::bindings::channels::RingBuffer;
 use crate::bindings::edgedetect::edgedetect;
 
 mod bindings;
+mod label;
+mod visualizer;
 
 const TEST_DIR: &str = "tests";
 const RESULT_DIR: &str = "results";

@@ -1,6 +1,6 @@
-#include "includes/cpp/edgedetect.hpp"
-#include "includes/c/channels.h"
-#include "includes/c/constants.h"
+#include "edgedetect.hpp"
+#include "channels.h"
+#include "constants.h"
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -39,7 +39,7 @@ void mat_to_array(Mat *input, unsigned char *output) {
     }
 }
 
-int edges() {
+int edges(ring_buffer *buffer) {
     Mat frame, edges;
     VideoCapture cam;
     camera_init(&cam, 0);
@@ -48,7 +48,7 @@ int edges() {
     cam.read(frame);
     size_t size = frame.rows * frame.cols;
     unsigned char *proxy = (unsigned char *) malloc(size);
-    ring_buffer *buffer = ring_new(size);
+    // ring_buffer *buffer = ring_new(size);
 
     //--- GRAB AND WRITE LOOP
     cout << "Start grabbing" << endl << "Press any key to terminate" << endl;
@@ -66,7 +66,7 @@ int edges() {
         proxy = ring_write(buffer, proxy);
         // show live and wait for a key with timeout long enough to show images
         imshow(window_name, neee);
-        if (waitKey(5) >= 0)
+        if (waitKey(5) == 27)
             break;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor

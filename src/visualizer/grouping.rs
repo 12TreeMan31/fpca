@@ -1,5 +1,6 @@
-use crate::ffi::constants::*;
-use crate::human::sat;
+use crate::visualizer::sat;
+
+const SIZE: usize = 12;
 
 /// Converts the pixel data into N sectors based on the hues on the color
 /// wheel which all have the same arc length. Resulting array will be 1/3

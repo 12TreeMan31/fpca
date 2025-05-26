@@ -1,6 +1,8 @@
 #ifndef EDGEDETECT_HPP
 #define EDGEDETECT_HPP
 
-int edges();
+#include "channels.h"
+
+int edges(ring_buffer *buffer);
 
 #endif

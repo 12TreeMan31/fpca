@@ -1,2 +1,2 @@
-#include "../includes/channels.h"
-#include "../includes/constants.h"
+#include "channels.h"
+#include "constants.h"

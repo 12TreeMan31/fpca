@@ -1,4 +1,4 @@
-src/ffi/bindings.rs
+src/bindings/bindings.rs
 
 .vscode/
 test-images/

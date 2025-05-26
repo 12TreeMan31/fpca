@@ -5,7 +5,7 @@ TESTS=tests
 
 TEST_IMGS=test-images
 GRAPH_DIR=test-graphics
-
+# numactl --physcpubind=+1 /path/to/your/executable
 ffi: 
 	bindgen src/ffi/bindgen.h -o src/ffi/bindings.rs --raw-line "// [allow(warnings)]"
 
