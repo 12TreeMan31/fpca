@@ -3,6 +3,6 @@
 
 #include "channels.h"
 
-int edges(ring_buffer *buffer);
+int edges(ring_buffer_t *buffer);
 
 #endif

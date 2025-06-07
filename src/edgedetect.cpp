@@ -39,7 +39,7 @@ void mat_to_array(Mat *input, unsigned char *output) {
     }
 }
 
-int edges(ring_buffer *buffer) {
+int edges(ring_buffer_t *buffer) {
     Mat frame, edges;
     VideoCapture cam;
     camera_init(&cam, 0);
@@ -47,7 +47,7 @@ int edges(ring_buffer *buffer) {
     namedWindow(window_name, WINDOW_AUTOSIZE);
     cam.read(frame);
     size_t size = frame.rows * frame.cols;
-    unsigned char *proxy = (unsigned char *) malloc(size);
+    unsigned char *proxy = (unsigned char *)malloc(size);
     // ring_buffer *buffer = ring_new(size);
 
     //--- GRAB AND WRITE LOOP
@@ -63,7 +63,7 @@ int edges(ring_buffer *buffer) {
         detect_edge(&frame, &edges);
         mat_to_array(&edges, proxy);
         Mat neee(edges.rows, edges.cols, CV_8U, proxy);
-        proxy = ring_write(buffer, proxy);
+        ring_write(buffer, proxy);
         // show live and wait for a key with timeout long enough to show images
         imshow(window_name, neee);
         if (waitKey(5) == 27)

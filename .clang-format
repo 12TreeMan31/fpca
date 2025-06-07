@@ -16,7 +16,7 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
 BreakInheritanceList: BeforeComma
-BreakStringLiterals: false
+BreakStringLiterals: true
 ColumnLimit: 109
 CompactNamespaces: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
@@ -35,8 +35,6 @@ PenaltyBreakString: 0
 PenaltyExcessCharacter: 10
 PenaltyReturnTypeOnItsOwnLine: 100
 PointerAlignment: Right
-# SpaceAfterCStyleCast: true
-# SpaceAroundPointerQualifiers: Both
 SpaceBeforeParens: ControlStatements
 SpacesInAngles: true
 TabWidth: 8

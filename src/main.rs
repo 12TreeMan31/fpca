@@ -7,10 +7,10 @@
 // use std::sync::atomic::AtomicBool;
 // use zune_jpeg::zune_core::{colorspace::ColorSpace, options::DecoderOptions};
 // use zune_jpeg::{ImageInfo, JpegDecoder};
-use crate::bindings::channels::RingBuffer;
-use crate::bindings::edgedetect::edgedetect;
+use crate::ffi::channels::RingBuffer;
+use crate::ffi::edgedetect;
 
-mod bindings;
+mod ffi;
 mod label;
 mod visualizer;
 
@@ -63,5 +63,6 @@ fn write_image(path: &str, data: &Vec<u8>, info: &ImageInfo, color: ColorType) {
  */
 
 fn main() {
-    edgedetect::edges();
+    let buf = RingBuffer::new(1000);
+    edgedetect::edge_finder(&buf);
 }
